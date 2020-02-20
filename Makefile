@@ -1,5 +1,11 @@
 CFLAGS=-g -Wall -pedantic
 
+hexdump: hexdump.c
+	gcc $(CFLAGS) -o hexdump hexdump.c
+
+hexread: hexread.c
+	gcc $(CFLAGS) -o hexread hexread.c
+
 util: util.c
 	gcc $(CFLAGS) -o util util.c
 

@@ -71,15 +71,3 @@ char *hex_to_binary(char *s){
     }
     return binaryString;
 }
-
-//Main method, used for testing the functionality of binary_to_hex
-//and hex_to_binary
-int main(int argc, char *argv[]) {
-    //calling binary_to_hex for testing
-    printf ("Testing for binary_to_hex...\n");
-    binary_to_hex ("This string is for testing purposes.", 36);
-    //calling hex_to_binary for testing
-    printf ("\n");
-    printf ("Testing for hex_to_binary...\n");
-    printf ("%s\n", hex_to_binary ("68 65 6c 6c 6f"));
-}
