@@ -7,7 +7,7 @@ hexread: hexread.c
 	gcc $(CFLAGS) -o hexread hexread.c
 
 util: util.c
-	gcc $(CFLAGS) -o util util.c
+	gcc $(CFLAGS) -c -o util util.c
 
 .PHONY: clean
 clean:

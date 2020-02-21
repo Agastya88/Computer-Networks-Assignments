@@ -33,7 +33,6 @@ int main(int argc, char *argv[]) {
         else{
             return -1;
         }
-        printf ("Filesize: %d\n", fileSize);
         char* str = malloc (fileSize);
         fread (str, 1, fileSize, file);
         char* result = hex_to_binary (str);
