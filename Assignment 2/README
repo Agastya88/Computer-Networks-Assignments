@@ -1,0 +1,11 @@
+[agastya@middlinux Assignment 2]$ ./beb 10
+Time elapsed: 25 units.
+[agastya@middlinux Assignment 2]$ ./beb 20
+Time elapsed: 48 units.
+[agastya@middlinux Assignment 2]$ ./beb 40
+Time elapsed: 78 units.
+[agastya@middlinux Assignment 2]$ ./beb 80
+Time elapsed: 198 units.
+
+--> the time units it takes is about 2-2.5 times the size of N for each of them,
+so the delays incurred scale more or less linearly with respect to N = 10,20,40,80.
