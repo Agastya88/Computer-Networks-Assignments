@@ -86,7 +86,11 @@ int binaryExponentialBackoff (int n){
         limit*=2;
     }
     //generating a random number
-    int random = rand();
+    int random;
+    FILE *fpointer;
+    fpointer = fopen("/dev/urandom", "rb");
+    fread(&random,sizeof(int),1,fpointer);
+    fclose(fpointer);
     //returning a random number between 0 and the limit
     return random%limit;
 }
