@@ -10,7 +10,7 @@ hexdump: util.o hexdump.o
 	gcc $(CFLAGS) -o hexdump hexdump.o util.o
 
 hexread: util.o hexread.o
-	gcc $(CFLAGS) -o hexread hexread.o util.o
+	gcc $(CFLAGS) -o hexread hexread.o util.o 
 
 hexdump.o: hexdump.c
 	gcc $(CFLAGS) -c -o hexdump.o hexdump.c

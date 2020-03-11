@@ -35,7 +35,10 @@ int main(int argc, char *argv[]) {
     //if there is no argument, then it should take input from stdin
     else{
         char *str = malloc (4096);
-        fgets(str, 4096, stdin);
+        size_t returnValue = fread(str, 1, 4096, stdin);
+        if (returnValue==-1){
+            perror("fread: ");
+        }
         char* result = hex_to_binary (str);
         if (result!=NULL){
             printf ("%s", result);

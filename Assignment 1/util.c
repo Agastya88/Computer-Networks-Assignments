@@ -13,7 +13,7 @@ int byteCounter = 0;
     for (int i=0; i<n; i++){
         byteCounter+=1;
         //printing every character of the string as hexadecimal
-        printf ("%x ", (unsigned char)*(s+i));
+        printf ("%02x ", (unsigned char)*(s+i));
         //creating a new line every 16 bytes
         if (byteCounter%16 == 0){
             printf ("\n");
