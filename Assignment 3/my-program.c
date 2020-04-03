@@ -7,6 +7,7 @@
 #include <fcntl.h>
 #include <poll.h>
 #include <gdbm.h>
+#include <sys/mman.h>
 
 #include <arpa/inet.h>      /* this has to be included before the next two */
 #include <linux/if.h>       /* which has got to be unintended */
@@ -31,6 +32,15 @@
 //source IP is 192.168.1.2, which is a device on the tap network i.e. 192.168.1.0/24, which in hex can be written as c0 a8 01 01
 //destination IP is input as a command line argument, set 0.0.0.0 initially
 
+#define SLEEP_TIME 10
+#define SHARED_MEMORY_NAME "/test"
+
+/* needs to exist in memory shared between all processes that need to
+ * synchronize */
+struct shared_data {
+    GDBM_FILE arpTable;
+};
+
 char frame[MAX_ETH_FRAME_SIZE] =
         "\xff\xff\xff\xff\xff\xff\xaa\xbb"
         "\xcc\xdd\xee\x33\x08\x06\x00\x01"
@@ -48,7 +58,6 @@ void decimalToHex (char *hex, int decimalNumber);
 
 int main (int argc, char *argv[]){
     //initilaizing variables
-    GDBM_FILE arpTable;
     datum key,value;
     int tap_fd;
     int num_bytes;
@@ -120,22 +129,53 @@ int main (int argc, char *argv[]){
                     }
                     value.dptr = value_mac;
                     value.dsize = 7;
-                    //opening the database
-                    arpTable = gdbm_open("arp_table", 0, GDBM_NEWDB, 0666, 0);
+                    //initialising the variable to refer to data in shared memory
+                    int shared_size = sizeof(struct shared_data);
+                    struct shared_data *sd = malloc (shared_size);
+                    //opening the database from the shared memory region
+                    sd->arpTable = gdbm_open("arp_table", 0, GDBM_NEWDB, 0666, 0);
                     //storing the key-value pair in the ARP Table
-                    gdbm_store (arpTable, key, value, GDBM_INSERT);
-                    gdbm_close (arpTable);
+                    gdbm_store (sd->arpTable, key, value, GDBM_INSERT);
+                    gdbm_close (sd->arpTable);
                     //separately looking up the MAC address in the ARP table
-                    arpTable = gdbm_open("arp_table", 0, GDBM_READER, 0666, 0);
-                    if (!arpTable){
+                    sd->arpTable = gdbm_open("arp_table", 0, GDBM_READER, 0666, 0);
+                    if (!sd->arpTable){
                         fprintf (stderr, "File either doesn't exist or is not a gdbm file.\n");
                     }
                     else{
-                        datum fetchedValue = gdbm_fetch(arpTable, key);
+                        datum fetchedValue = gdbm_fetch(sd->arpTable, key);
                         //printing it in human readable format
                         printf ("The MAC address is: ");
                         binary_to_hex (fetchedValue.dptr, fetchedValue.dsize-1);
                         printf ("\n");
+
+                        //putting db in shared memory
+                        int shm_fd;
+
+                        //creating/attaching to the shared memory region that contains the semaphore
+                        if((shm_fd = shm_open(SHARED_MEMORY_NAME, O_RDWR | O_CREAT, 0644)) < 0) {
+                            perror("shm_open");
+                            exit(1);
+                        }
+                        //setting the size of the shared memory region-to-be
+                        if(ftruncate(shm_fd, shared_size) < 0) {
+                            perror("ftruncate");
+                            exit(2);
+                        }
+                        //mapping the shared memory region into the current process' address space
+                        if((sd = mmap(NULL, shared_size, PROT_READ | PROT_WRITE,
+                                    MAP_SHARED, shm_fd, 0)) == MAP_FAILED) {
+                            perror("mmap");
+                            exit(3);
+                        }
+                        //reading the shared memory
+                        printf("my pid is %d\n", getpid());
+                        printf("shared memory is at address %p\n", (void *) sd);
+                        /* wait a bit */
+                        printf("sleeping %d seconds\n", SLEEP_TIME);
+                        sleep(SLEEP_TIME);
+                        //unlinking
+                        shm_unlink(SHARED_MEMORY_NAME);
                     }
                 }
             }
