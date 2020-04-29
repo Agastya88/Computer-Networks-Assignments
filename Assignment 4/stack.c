@@ -22,6 +22,10 @@ char tap1_ip [4] = "\xc0\xa8\x01\x01";
 char tap2_ip [4] = "\xc0\xa8\x02\x01";
 char prog_ip [5] = "\xc0\xa8\x01\x12\0";
 char prog_mac [6] = "\x1e\x44\x5b\x59\x48\x6b";
+//prog is device on the tap 1 network, my program acts as this device (this is my understanding)
+char tap3_ip [4] = "\xc0\xa8\x02\x12";
+char tap3_mac [6] = "\xaa\xbb\xcc\xdd\xee\x33";
+//tap 3 is a device on the tap 2 network
 char frame[MAX_ETH_FRAME_SIZE];
 static int connect_to_tap(char* tapDeviceName);
 static int wait_for_frame(int* fds, int msec);
@@ -83,7 +87,7 @@ int main (int argc, char *argv[]){
                         frame [21] = '\x02';
                         num_bytes = write(fd, frame, framelen);
                         printf("sent %d/%d bytes to %d\n", num_bytes, framelen, fd);
-                        //sending an ARP reply
+                        //sending an ARP reply, this causes the ping request to show up
                     }
                     //when the destinationIP does not match the program IP, we drop the packet,
                     //since it wasn't meant to pass through 192.168.1.18
@@ -92,13 +96,32 @@ int main (int argc, char *argv[]){
                     }
                 }
             }
-            else if (num_bytes==90){
-                //parsing the ping packet
-                //bytes 30-33 are the final destination's IP address
-                //if final destination = prog IP, then we have recieved the packet
-                //if final destination != prog IP, then we use netmask to check if it was for this network
-                    //if it is for this network we send an ARP request
-                    //if it is not for this network we send it to another network
+            //checking if we recieved a ping request
+            if (num_bytes==98){
+                //ping request, routing to tap2 network
+                printf ("the packet is a ping request\n");
+                /*printf ("the contents of the frame: ");
+                binary_to_hex (frame, 98);*/
+                //change the destination mac of the ping request to another network;
+                //for my chosing routing sequence, this network is tap2
+                for (int i=0; i<=5; i++) {
+                    frame[i] = tap2_mac [i];
+                }
+                //change source to the router (my program)
+                for (int i=6,j=0; i<=11; i++,j++){
+                    frame [i] = prog_mac [j];
+                }
+                for (int i=26,j=0; i<=29; i++,j++){
+                    frame [i] = prog_ip [j];
+                }
+                //routing to a device 192.168.2.18 on tap2's network
+                for (int i=30,j=0; i<=33; i++, j++){
+                    frame [i] = tap3_ip [j];
+                }
+                /*printf ("the contents of the frame after modifications: ");
+                binary_to_hex (frame, 98);*/
+                num_bytes = write(tap2_fd, frame, 98);
+                printf("sent %d/%d bytes to %d\n", num_bytes, 98, tap2_fd);
             }
             else {
                 printf("no data arrived\n");

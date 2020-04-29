@@ -25,6 +25,7 @@ create_tap_device() {
 
 create_tap_device "tap1" "aa:bb:cc:dd:ee:11" "192.168.1.1" "255.255.255.0"
 create_tap_device "tap2" "aa:bb:cc:dd:ee:22" "192.168.2.1" "255.255.255.0"
+create_tap_device "tap3" "aa:bb:cc:dd:ee:33" "192.168.2.18" "255.255.255.0"
 
 # tell Linux to route packets
 #sysctl net.ipv4.ip_forward=1
