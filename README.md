@@ -1,5 +1,4 @@
 # Computer-Networks-Assignments
---- Assignments done for CS431 during the Spring 2020 semester;
 
 Assignment 1: Two programs hexdump and hexread.
 hexdump will convert its input from binary to hex; hexread will perform the reverse operation. 
